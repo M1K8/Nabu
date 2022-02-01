@@ -30,7 +30,7 @@ import (
 
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go/v2"
 	"github.com/jmoiron/jsonq"
-	"github.com/m1k8/kronos/pkg/config"
+	"github.com/m1k8/harpe/pkg/config"
 	"github.com/superoo7/go-gecko/v3/types"
 
 	coingecko "github.com/superoo7/go-gecko/v3"
