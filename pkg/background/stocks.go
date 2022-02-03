@@ -26,7 +26,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author, expiry string, spt, ept float32, guildID string, exit chan bool) {
+func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author, expiry string, guildID string, exit chan bool) {
 	log.Println("Starting BG Scan for Stock " + ticker)
 	tick := time.NewTicker(45 * time.Second) // slow because api is slow
 	var expiryDate time.Time

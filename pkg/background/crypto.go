@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expiry string, spt, ept float32, guildID, author string, exit chan bool) {
+func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expiry, guildID, author string, exit chan bool) {
 	tick := time.NewTicker(10000 * time.Millisecond)
 	log.Println("Starting BG Scan for Crypto " + ticker)
 	var expiryDate time.Time
