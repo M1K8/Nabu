@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
@@ -56,7 +57,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 
 	}
 	repo := *b.Repo
-	dbShort, err := repo.GetShort(guildID, ticker)
+	dbShort, err := repo.GetShort(ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
 		return
@@ -78,7 +79,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			log.Println("closing channel for Short due to remove " + ticker)
 			return
 		case <-tick.C:
-			if !repo.IsTradingHours() {
+			if !db.IsTradingHours() {
 				if dbShort.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
 						Type: 1,

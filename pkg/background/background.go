@@ -58,25 +58,25 @@ func NewBG(guildID string, repo *Repo) *Background {
 }
 
 type Repo interface {
-	RmAll(string) error
-	GetAll(string) ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
-	SetAndReturnNewExitChan(string, string, chan bool) chan bool
-	RefreshFromDB(string) ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
-	IsTradingHours() bool
+	RmAll() error
+	GetAll() ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
+	GetExitChan(string) chan bool
+	SetAndReturnNewExitChan(string, chan bool) chan bool
+	RefreshFromDB() ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
 
-	GetOption(string, string) (*harpe.Option, error)
-	CreateOption(string, string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
-	RemoveOption(string, string, string, string, string, string, float32) error
+	GetOption(string) (*harpe.Option, error)
+	CreateOption(string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
+	RemoveOption(string, string, string, string, string, float32) error
 
-	CreateShort(string, string, int, float32, float32, float32, float32, int64, string, float32) (chan bool, bool, error)
-	RemoveShort(string, string) error
-	GetShort(string, string) (*harpe.Short, error)
+	CreateShort(string, string, int, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
+	RemoveShort(string) error
+	GetShort(string) (*harpe.Short, error)
 
-	CreateStock(string, string, int, float32, float32, float32, float32, int64, string, float32) (chan bool, bool, error)
-	RemoveStock(string, string) error
-	GetStock(string, string) (*harpe.Stock, error)
+	CreateStock(string, string, int, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
+	RemoveStock(string) error
+	GetStock(string) (*harpe.Stock, error)
 
-	CreateCrypto(string, string, float32, float32, float32, float32, int, string, string, float32) (chan bool, bool, error)
+	CreateCrypto(string, string, float32, float32, float32, float32, int, float32) (chan bool, bool, error)
 	RemoveCrypto(string, string) error
-	GetCrypto(string, string) (*harpe.Crypto, error)
+	GetCrypto(string) (*harpe.Crypto, error)
 }

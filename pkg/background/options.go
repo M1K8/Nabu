@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 	"github.com/uniplaces/carbon"
 )
@@ -63,7 +64,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 	}
 	now := time.Now()
 	repo := *b.Repo
-	optionDb, err := repo.GetOption(guildID, oID)
+	optionDb, err := repo.GetOption(oID)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get option from db %v: %w", prettyStr, err))
 		outChan <- Response{
@@ -109,7 +110,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		case <-exit:
 			return
 		case <-tick.C:
-			if !repo.IsTradingHours() {
+			if !db.IsTradingHours() {
 				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
 					outChan <- Response{
 						Type:    Expired,

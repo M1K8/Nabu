@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
@@ -56,7 +57,7 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 
 	}
 	repo := *b.Repo
-	dbStock, err := repo.GetStock(guildID, ticker)
+	dbStock, err := repo.GetStock(ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
 		return
@@ -78,7 +79,7 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 			log.Println("closing channel for Stock due to remove " + ticker)
 			return
 		case <-tick.C:
-			if !repo.IsTradingHours() {
+			if !db.IsTradingHours() {
 				if dbStock.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
 						Type: Expired,

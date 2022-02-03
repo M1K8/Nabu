@@ -20,17 +20,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 	"github.com/uniplaces/carbon"
 )
 
 func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 	hasPosted := false
-	repo := *b.Repo
 	for {
 		log.Println("|||||||||||Spinning tracker - " + gid)
 		now, _ := carbon.NowInLocation("America/Detroit")
-		if !repo.IsTradingHours() {
+		if !db.IsTradingHours() {
 			log.Println("|||||||||||Outside of trading hours - " + gid)
 			if now.Hour() == 16 && !hasPosted { // if it isnt end of trading day - say bot is started outside of trading hours
 				outChan <- Response{
