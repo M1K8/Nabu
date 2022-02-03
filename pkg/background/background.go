@@ -77,6 +77,6 @@ type Repo interface {
 	GetStock(string) (*harpe.Stock, error)
 
 	CreateCrypto(string, string, float32, float32, float32, float32, int, float32) (chan bool, bool, error)
-	RemoveCrypto(string, string) error
+	RemoveCrypto(string) error
 	GetCrypto(string) (*harpe.Crypto, error)
 }
