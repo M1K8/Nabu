@@ -16,50 +16,16 @@
 package background
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/m1k8/harpe/pkg/utils"
-	fetcher "github.com/m1k8/nabu/pkg/price_fetcher"
 	"github.com/uniplaces/carbon"
 )
-
-func (b *Background) GetOptionAdvanced(ticker, contractType, day, month, year string, price float32) (*fetcher.Snapshot, string, error) {
-	optionID := utils.GetCode(ticker, contractType, day, month, year, price)
-
-	url := fmt.Sprintf("https://%v/v3/snapshot/options/%v/O:%v?apiKey=%v", b.Endpoint, strings.ToUpper(ticker), optionID, b.Key)
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Get(url)
-	if err != nil {
-		log.Println(err)
-		return nil, "", err
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var quoteResp fetcher.Snapshot
-	err = json.Unmarshal(body, &quoteResp)
-	if err != nil {
-		return nil, "", err
-	}
-	if quoteResp.Status != "OK" || resp.StatusCode != 200 {
-		err = errors.New("error pinging Polygon - " + quoteResp.Status)
-		// instead of fallback, try the retry lib https://github.com/cenkalti/backoff
-		return nil, optionID, err
-	}
-	return &quoteResp, optionID, nil
-}
 
 func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool) {
 	tick := time.NewTicker(750 * time.Millisecond)
@@ -96,8 +62,8 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		return
 	}
 	now := time.Now()
-
-	optionDb, err := b.Repo.GetOption(guildID, oID)
+	repo := *b.Repo
+	optionDb, err := repo.GetOption(guildID, oID)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get option from db %v: %w", prettyStr, err))
 		outChan <- Response{
@@ -143,7 +109,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		case <-exit:
 			return
 		case <-tick.C:
-			if !b.Repo.IsTradingHours() {
+			if !repo.IsTradingHours() {
 				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
 					outChan <- Response{
 						Type:    Expired,
@@ -206,7 +172,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 			}
 
 			if optionDb.OptionUnderlyingPoI > 0 || optionDb.OptionUnderlyingStop > 0 {
-				underlying, _, err := b.GetOptionAdvanced(ticker, contractType, day, month, year, price)
+				underlying, _, err := b.Fetcher.GetOptionAdvanced(ticker, contractType, day, month, year, price)
 
 				if err != nil {
 					log.Println(err)

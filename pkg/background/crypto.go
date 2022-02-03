@@ -51,7 +51,8 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 	})()
 
 	// move this to Kronos, pass it in
-	coinDb, err := b.Repo.GetCrypto(guildID, ticker)
+	repo := *b.Repo
+	coinDb, err := repo.GetCrypto(guildID, ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get crypto from db %v: %w", ticker, err))
 		return

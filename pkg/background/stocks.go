@@ -55,8 +55,8 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-
-	dbStock, err := b.Repo.GetStock(guildID, ticker)
+	repo := *b.Repo
+	dbStock, err := repo.GetStock(guildID, ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
 		return
@@ -78,7 +78,7 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 			log.Println("closing channel for Stock due to remove " + ticker)
 			return
 		case <-tick.C:
-			if !b.Repo.IsTradingHours() {
+			if !repo.IsTradingHours() {
 				if dbStock.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
 						Type: Expired,

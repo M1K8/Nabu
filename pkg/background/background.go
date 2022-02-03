@@ -21,11 +21,9 @@ import (
 )
 
 type Background struct {
-	Fetcher  fetcher.Fetcher
-	Repo     Repo
-	GuildID  string
-	Endpoint string
-	Key      string
+	Fetcher fetcher.Fetcher
+	Repo    *Repo
+	GuildID string
 }
 
 type Response struct {
@@ -48,6 +46,16 @@ const (
 	EoD
 	Error
 )
+
+func NewBG(guildID string, repo *Repo) *Background {
+	fetch := fetcher.NewFetcher()
+
+	return &Background{
+		Fetcher: fetch,
+		Repo:    repo,
+		GuildID: guildID,
+	}
+}
 
 type Repo interface {
 	RmAll(string) error

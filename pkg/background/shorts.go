@@ -55,8 +55,8 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-
-	dbShort, err := b.Repo.GetShort(guildID, ticker)
+	repo := *b.Repo
+	dbShort, err := repo.GetShort(guildID, ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
 		return
@@ -78,7 +78,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			log.Println("closing channel for Short due to remove " + ticker)
 			return
 		case <-tick.C:
-			if !b.Repo.IsTradingHours() {
+			if !repo.IsTradingHours() {
 				if dbShort.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
 						Type: 1,

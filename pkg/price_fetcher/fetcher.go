@@ -15,10 +15,13 @@
  */
 package fetcher
 
+import (
+	"github.com/m1k8/harpe/pkg/types"
+)
+
 type Fetcher interface {
 	GetStock(string) (float32, error)
 	GetCrypto(string, bool) (float32, error)
 	GetOption(string, string, string, string, string, float32, float32) (float32, string, error)
-	// This one we'll do locally
-	//GetOptionAdvanced(string, string, string, string, string, float32, float32) (*Snapshot, string, error)
+	GetOptionAdvanced(string, string, string, string, string, float32) (*types.Snapshot, string, error)
 }

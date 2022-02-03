@@ -31,6 +31,7 @@ import (
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go/v2"
 	"github.com/jmoiron/jsonq"
 	"github.com/m1k8/harpe/pkg/config"
+	harpeTypes "github.com/m1k8/harpe/pkg/types"
 	"github.com/superoo7/go-gecko/v3/types"
 
 	coingecko "github.com/superoo7/go-gecko/v3"
@@ -42,6 +43,17 @@ type jsonPrice struct {
 
 var initOnce = sync.Once{}
 var fetcher *DefaultFetcher
+
+type DefaultFetcher struct {
+	coinCacheMap map[string]types.CoinsListItem
+
+	once sync.Once
+
+	Endpoint string
+	Key      string
+
+	finn string
+}
 
 func NewFetcher() *DefaultFetcher {
 
@@ -79,8 +91,8 @@ func NewFetcher() *DefaultFetcher {
 		fetcher = &DefaultFetcher{
 			coinCacheMap: make(map[string]types.CoinsListItem),
 			once:         sync.Once{},
-			endpoint:     endpoint,
-			key:          key,
+			Endpoint:     endpoint,
+			Key:          key,
 			finn:         finn,
 		}
 	})
@@ -90,20 +102,7 @@ func NewFetcher() *DefaultFetcher {
 	}
 
 	return fetcher
-
 }
-
-type DefaultFetcher struct {
-	coinCacheMap map[string]types.CoinsListItem
-
-	once sync.Once
-
-	endpoint string
-	key      string
-
-	finn string
-}
-
 func (d *DefaultFetcher) GetStock(stock string) (float32, error) {
 	cfg := finnhub.NewConfiguration()
 	cfg.AddDefaultHeader("X-Finnhub-Token", d.finn)
@@ -185,7 +184,7 @@ func (d *DefaultFetcher) GetCrypto(coin string, isThisARetry bool) (float32, err
 
 func (d *DefaultFetcher) GetOption(ticker, contractType, day, month, year string, price, last float32) (float32, string, error) {
 	optionID := GetCode(ticker, contractType, day, month, year, price)
-	url := fmt.Sprintf("https://%v/v2/last/trade/O:%v?apiKey=%v", d.endpoint, optionID, d.key)
+	url := fmt.Sprintf("https://%v/v2/last/trade/O:%v?apiKey=%v", d.Endpoint, optionID, d.Key)
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -200,7 +199,7 @@ func (d *DefaultFetcher) GetOption(ticker, contractType, day, month, year string
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var quoteResp LastQuoteResponse
+	var quoteResp harpeTypes.LastQuoteResponse
 	err = json.Unmarshal(body, &quoteResp)
 	if err != nil {
 		return -1, "", err
@@ -214,10 +213,10 @@ func (d *DefaultFetcher) GetOption(ticker, contractType, day, month, year string
 	return float32(quoteResp.Results.P), optionID, nil
 }
 
-func (d *DefaultFetcher) GetOptionAdvanced(ticker, contractType, day, month, year string, price float32) (*Snapshot, string, error) {
+func (d *DefaultFetcher) GetOptionAdvanced(ticker, contractType, day, month, year string, price float32) (*harpeTypes.Snapshot, string, error) {
 	optionID := GetCode(ticker, contractType, day, month, year, price)
 
-	url := fmt.Sprintf("https://%v/v3/snapshot/options/%v/O:%v?apiKey=%v", d.endpoint, strings.ToUpper(ticker), optionID, d.key)
+	url := fmt.Sprintf("https://%v/v3/snapshot/options/%v/O:%v?apiKey=%v", d.Endpoint, strings.ToUpper(ticker), optionID, d.Key)
 	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -230,7 +229,7 @@ func (d *DefaultFetcher) GetOptionAdvanced(ticker, contractType, day, month, yea
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var quoteResp Snapshot
+	var quoteResp harpeTypes.Snapshot
 	err = json.Unmarshal(body, &quoteResp)
 	if err != nil {
 		return nil, "", err
