@@ -40,44 +40,57 @@ type jsonPrice struct {
 	Price float64
 }
 
+var initOnce = sync.Once{}
+var fetcher *DefaultFetcher
+
 func NewFetcher() *DefaultFetcher {
-	cfgFile, err := os.Open("config.json")
 
-	if err != nil {
-		panic("Unable to open config.json!")
+	initOnce.Do(func() {
+		cfgFile, err := os.Open("config.json")
+
+		if err != nil {
+			panic("Unable to open config.json!")
+		}
+
+		defer cfgFile.Close()
+
+		byteValue, err := ioutil.ReadAll(cfgFile)
+
+		if err != nil {
+			panic("Error reading config.json!")
+		}
+
+		var cfg config.Config
+		json.Unmarshal(byteValue, &cfg)
+
+		if cfg.StocksCFG.Key == "" {
+			panic("TV not configured")
+		}
+
+		endpoint := cfg.StocksCFG.E
+		key := cfg.StocksCFG.Key
+
+		finn := cfg.StocksCFG.Finn_API
+
+		if finn == "" {
+			fmt.Println("finn nil")
+		}
+
+		fetcher = &DefaultFetcher{
+			coinCacheMap: make(map[string]types.CoinsListItem),
+			once:         sync.Once{},
+			endpoint:     endpoint,
+			key:          key,
+			finn:         finn,
+		}
+	})
+
+	if fetcher == nil {
+		panic("fetcher not set")
 	}
 
-	defer cfgFile.Close()
+	return fetcher
 
-	byteValue, err := ioutil.ReadAll(cfgFile)
-
-	if err != nil {
-		panic("Error reading config.json!")
-	}
-
-	var cfg config.Config
-	json.Unmarshal(byteValue, &cfg)
-
-	if cfg.StocksCFG.Key == "" {
-		panic("TV not configured")
-	}
-
-	endpoint := cfg.StocksCFG.E
-	key := cfg.StocksCFG.Key
-
-	finn := cfg.StocksCFG.Finn_API
-
-	if finn == "" {
-		fmt.Println("finn nil")
-	}
-
-	return &DefaultFetcher{
-		coinCacheMap: make(map[string]types.CoinsListItem),
-		once:         sync.Once{},
-		endpoint:     endpoint,
-		key:          key,
-		finn:         finn,
-	}
 }
 
 type DefaultFetcher struct {
