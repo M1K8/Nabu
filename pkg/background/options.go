@@ -63,8 +63,8 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		return
 	}
 	now := time.Now()
-	repo := *b.Repo
-	optionDb, err := repo.GetOption(oID)
+
+	optionDb, err := b.Repo.GetOption(oID)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get option from db %v: %w", prettyStr, err))
 		outChan <- Response{

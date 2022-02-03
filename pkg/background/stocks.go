@@ -56,8 +56,7 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-	repo := *b.Repo
-	dbStock, err := repo.GetStock(ticker)
+	dbStock, err := b.Repo.GetStock(ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
 		return

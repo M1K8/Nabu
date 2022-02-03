@@ -56,8 +56,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-	repo := *b.Repo
-	dbShort, err := repo.GetShort(ticker)
+	dbShort, err := b.Repo.GetShort(ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
 		return

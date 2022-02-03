@@ -22,7 +22,7 @@ import (
 
 type Background struct {
 	Fetcher fetcher.Fetcher
-	Repo    *Repo
+	Repo    Repo
 	GuildID string
 }
 
@@ -47,7 +47,7 @@ const (
 	Error
 )
 
-func NewBG(guildID string, repo *Repo) *Background {
+func NewBG(guildID string, repo Repo) *Background {
 	fetch := fetcher.NewFetcher()
 
 	return &Background{
