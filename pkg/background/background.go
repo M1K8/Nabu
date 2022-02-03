@@ -17,7 +17,7 @@ package background
 
 import (
 	harpe "github.com/m1k8/harpe/pkg/db"
-	fetcher "github.com/m1k8/nabu/pkg/price_fetcher"
+	"github.com/m1k8/nabu/pkg/fetcher"
 )
 
 type Background struct {
