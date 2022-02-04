@@ -47,8 +47,11 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 
 	defer (func() {
 		log.Println("closing channel for crypto " + ticker)
+		outChan <- Response{
+			Type: Exit,
+		}
 		close(exit)
-		log.Println("channel closed for crypto " + ticker)
+		close(outChan)
 	})()
 
 	// move this to Kronos, pass it in

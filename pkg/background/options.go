@@ -50,7 +50,11 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 
 	defer (func() {
 		log.Println("closing channel for option " + prettyStr)
+		outChan <- Response{
+			Type: Exit,
+		}
 		close(exit)
+		close(outChan)
 	})()
 
 	expiryDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v-%v-%vT20:59:59Z", year, month, day))

@@ -46,7 +46,11 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 
 	defer (func() {
 		log.Println("closing channel for Stock " + ticker)
+		outChan <- Response{
+			Type: Exit,
+		}
 		close(exit)
+		close(outChan)
 	})()
 
 	if expiry != "" {

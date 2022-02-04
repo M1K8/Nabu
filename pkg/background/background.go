@@ -45,6 +45,7 @@ const (
 	New_High
 	EoD
 	Error
+	Exit
 )
 
 func NewBG(guildID string, repo Repo) *Background {
