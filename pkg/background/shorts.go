@@ -68,14 +68,12 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		outChan <- Response{
 			Type: 1,
 		}
-		log.Println("closing channel for Short due to expiry " + ticker)
 		return
 	}
 
 	for {
 		select {
 		case <-exit:
-			log.Println("closing channel for Short due to remove " + ticker)
 			return
 		case <-tick.C:
 			if !db.IsTradingHours() {

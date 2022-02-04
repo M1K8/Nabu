@@ -80,9 +80,8 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 	if !expiryDate.IsZero() && now.After(expiryDate) {
 		outChan <- Response{
 			Type:    Expired,
-			Message: "closing channel for option due to expiry",
+			Message: "expiry",
 		}
-		log.Println("closing channel for option due to expiry" + prettyStr)
 		return
 	}
 
@@ -98,7 +97,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		callTimeCarbon.DiffInWeeks(expiryCarbon, false) == 0 {
 		outChan <- Response{
 			Type:    Expired,
-			Message: "closing channel for option due to weird exp rule",
+			Message: " weird exp rule",
 		}
 		log.Println("Removed options ticker " + prettyStr)
 		return
@@ -131,7 +130,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					log.Println("Option " + prettyStr + " hit weekly expire. Called: " + callTimeCarbon.DateTimeString())
 					outChan <- Response{
 						Type:    Expired,
-						Message: "closing channel for option due to weird exp rule",
+						Message: "weird exp rule",
 					}
 					log.Println("Removed options ticker " + prettyStr)
 					return
