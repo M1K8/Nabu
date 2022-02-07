@@ -49,8 +49,8 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		outChan <- Response{
 			Type: Exit,
 		}
-		close(exit)
-		close(outChan)
+		//close(exit)
+		//close(outChan)
 	})()
 
 	if expiry != "" {

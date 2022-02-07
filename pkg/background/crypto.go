@@ -50,8 +50,8 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 		outChan <- Response{
 			Type: Exit,
 		}
-		close(exit)
-		close(outChan)
+		//close(exit)
+		//close(outChan)
 	})()
 
 	// move this to Kronos, pass it in
