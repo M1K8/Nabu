@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Finnhub-Stock-API/finnhub-go/v2 v2.0.9
 	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
-	github.com/m1k8/harpe v0.2.1
+	github.com/m1k8/harpe v0.2.2
 	github.com/superoo7/go-gecko v1.0.0
 	github.com/uniplaces/carbon v0.1.6
 )
