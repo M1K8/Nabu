@@ -47,8 +47,10 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 
 	defer (func() {
 		log.Println("closing channel for crypto " + ticker)
+		final, _ := b.Fetcher.GetCrypto(ticker, false)
 		outChan <- Response{
-			Type: Exit,
+			Type:  Exit,
+			Price: final,
 		}
 		//close(exit)
 		//close(outChan)
@@ -64,9 +66,10 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 	highest := coinDb.CryptoHighest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
+		final, _ := b.Fetcher.GetCrypto(ticker, false)
 		outChan <- Response{
 			Type:    Expired,
-			Price:   0,
+			Price:   final,
 			PctGain: 0,
 			Message: "",
 		}

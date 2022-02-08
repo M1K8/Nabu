@@ -46,8 +46,10 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 
 	defer (func() {
 		log.Println("closing channel for Stock " + ticker)
+		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
-			Type: Exit,
+			Type:  Exit,
+			Price: final,
 		}
 		//close(exit)
 		//close(outChan)
@@ -69,8 +71,10 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 	highest := dbStock.StockHighest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
+		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
-			Type: Expired,
+			Type:  Expired,
+			Price: final,
 		}
 		return
 	}

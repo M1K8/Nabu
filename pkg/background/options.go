@@ -50,8 +50,10 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 
 	defer (func() {
 		log.Println("closing channel for option " + prettyStr)
+		final, _, _ := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 		outChan <- Response{
-			Type: Exit,
+			Type:  Exit,
+			Price: final,
 		}
 		//close(exit)
 		//close(outChan)
@@ -82,9 +84,10 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 
 	// remove alert if contract has expired
 	if !expiryDate.IsZero() && now.After(expiryDate) {
+		final, _, _ := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 		outChan <- Response{
-			Type:    Expired,
-			Message: "expiry",
+			Type:  Expired,
+			Price: final,
 		}
 		return
 	}

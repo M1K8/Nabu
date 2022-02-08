@@ -46,8 +46,10 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 
 	defer (func() {
 		log.Println("closing channel for short " + ticker)
+		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
-			Type: Exit,
+			Type:  Exit,
+			Price: final,
 		}
 		//close(exit)
 		//close(outChan)
@@ -69,8 +71,10 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 	lowest := dbShort.ShortLowest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
+		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
-			Type: 1,
+			Type:  Expired,
+			Price: final,
 		}
 		return
 	}
@@ -83,7 +87,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if !db.IsTradingHours() {
 				if dbShort.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
-						Type: 1,
+						Type: Expired,
 					}
 					return
 				}
@@ -105,7 +109,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if newPrice < lowest {
 				lowest = newPrice
 				outChan <- Response{
-					Type:  6,
+					Type:  New_High,
 					Price: newPrice,
 				}
 			}
@@ -113,7 +117,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if dbShort.ShortSPt > 0 && !hasAlertedSPT {
 				if newPrice <= dbShort.ShortSPt {
 					outChan <- Response{
-						Type:  2,
+						Type:  PT1,
 						Price: newPrice,
 					}
 				}
@@ -123,7 +127,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if dbShort.ShortEPt > 0 {
 				if newPrice <= dbShort.ShortEPt {
 					outChan <- Response{
-						Type:  3,
+						Type:  PT2,
 						Price: newPrice,
 					}
 					return
@@ -132,7 +136,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 
 			if dbShort.ShortStop != 0 && newPrice >= dbShort.ShortStop {
 				outChan <- Response{
-					Type:  4,
+					Type:  SL,
 					Price: newPrice,
 				}
 				return
@@ -145,7 +149,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 				if math.Abs(float64(pctDiff)) <= 0.5 {
 					poiHit = true
 					outChan <- Response{
-						Type:  5,
+						Type:  POI,
 						Price: newPrice,
 					}
 				}
@@ -156,7 +160,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[3] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 3", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -168,7 +172,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[5] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 5", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -181,7 +185,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[10] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 10", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -195,7 +199,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[15] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 15", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -210,7 +214,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[20] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 20", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -227,7 +231,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[25] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 25", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -244,7 +248,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[50] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 50", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -262,7 +266,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[100] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 100", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
@@ -281,7 +285,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					hasPingedOverPct[200] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 200", ticker, pctDiff))
 					outChan <- Response{
-						Type:    0,
+						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
 					}
