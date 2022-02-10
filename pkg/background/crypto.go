@@ -76,6 +76,22 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 		return
 	}
 
+	if coinDb.CryptoStarting <= highest {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   highest,
+			PctGain: 0,
+			Message: "",
+		}
+	} else {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   coinDb.CryptoStarting,
+			PctGain: 0,
+			Message: "",
+		}
+	}
+
 	for {
 		select {
 		case <-exit:

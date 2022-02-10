@@ -79,6 +79,22 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		return
 	}
 
+	if dbShort.ShortStarting >= lowest {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   lowest,
+			PctGain: 0,
+			Message: "",
+		}
+	} else {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   dbShort.ShortStarting,
+			PctGain: 0,
+			Message: "",
+		}
+	}
+
 	for {
 		select {
 		case <-exit:

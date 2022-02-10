@@ -110,6 +110,22 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		return
 	}
 
+	if optionDb.OptionStarting <= highest {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   highest,
+			PctGain: 0,
+			Message: "",
+		}
+	} else {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   optionDb.OptionStarting,
+			PctGain: 0,
+			Message: "",
+		}
+	}
+
 	for {
 		now = time.Now()
 		select {

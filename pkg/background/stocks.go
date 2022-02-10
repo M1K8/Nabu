@@ -79,6 +79,22 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		return
 	}
 
+	if dbStock.StockStarting <= highest {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   highest,
+			PctGain: 0,
+			Message: "",
+		}
+	} else {
+		outChan <- Response{
+			Type:    New_High,
+			Price:   dbStock.StockStarting,
+			PctGain: 0,
+			Message: "",
+		}
+	}
+
 	for {
 		select {
 		case <-exit:
