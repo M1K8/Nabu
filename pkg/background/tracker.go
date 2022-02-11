@@ -49,9 +49,9 @@ func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 				time.Sleep(tts)
 			}
 		} else {
-			log.Println(fmt.Sprintf("||||||||||Tracker sleeping until market close - %v - ", now.StartOfDay().Add(16*time.Hour+1*time.Minute).Sub(now.Time)) + gid)
+			sleepTime := 16*time.Hour+1*time.Minute).Sub(now.Time)
+			log.Println(fmt.Sprintf("||||||||||Tracker sleeping until market close - %v - ", sleepTime) + gid)
 			hasPosted = false
-			sleepTime := now.StartOfDay().Add(16*time.Hour + 1*time.Minute).Sub(now.Time)
 
 			if sleepTime <= 0 { //idk lol
 				log.Println("tts less than 0")
