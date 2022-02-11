@@ -71,7 +71,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 			Type:    Expired,
 			Price:   final,
 			PctGain: 0,
-			Message: "",
+			Message: coinDb.Caller,
 		}
 		return
 	}
@@ -81,14 +81,14 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 			Type:    New_High,
 			Price:   highest,
 			PctGain: 0,
-			Message: "",
+			Message: coinDb.Caller,
 		}
 	} else {
 		outChan <- Response{
 			Type:    New_High,
 			Price:   coinDb.CryptoStarting,
 			PctGain: 0,
-			Message: "",
+			Message: coinDb.Caller,
 		}
 	}
 
@@ -114,7 +114,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 					Type:    New_High,
 					Price:   newPrice,
 					PctGain: 0,
-					Message: "",
+					Message: coinDb.Caller,
 				}
 			}
 
@@ -124,7 +124,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    PT1,
 						Price:   newPrice,
 						PctGain: 0,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 				}
 				hasAlertedSPT = true
@@ -136,7 +136,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    PT2,
 						Price:   newPrice,
 						PctGain: 0,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					return
 				}
@@ -147,7 +147,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 					Type:    SL,
 					Price:   newPrice,
 					PctGain: 0,
-					Message: "",
+					Message: coinDb.Caller,
 				}
 				return
 			}
@@ -160,7 +160,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    POI,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					poiHit = true
 				} else {
@@ -175,7 +175,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 10", ticker, pctDiff))
 				}
@@ -188,7 +188,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 30", ticker, pctDiff))
 				}
@@ -202,7 +202,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 50", ticker, pctDiff))
 				}
@@ -217,7 +217,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 100", ticker, pctDiff))
 				}
@@ -233,7 +233,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 200", ticker, pctDiff))
 				}
@@ -250,7 +250,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 500", ticker, pctDiff))
 				}
@@ -268,7 +268,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 1000", ticker, pctDiff))
 				}
@@ -287,7 +287,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
-						Message: "",
+						Message: coinDb.Caller,
 					}
 					log.Println(fmt.Sprintf("%v reached %.2f | 2000", ticker, pctDiff))
 				}

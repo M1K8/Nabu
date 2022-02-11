@@ -104,7 +104,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		callTimeCarbon.DiffInWeeks(expiryCarbon, false) == 0 {
 		outChan <- Response{
 			Type:    Expired,
-			Message: " weird exp rule",
+			Message: optionDb.Caller,
 		}
 		log.Println("Removed options ticker " + prettyStr)
 		return
@@ -115,14 +115,14 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 			Type:    New_High,
 			Price:   highest,
 			PctGain: 0,
-			Message: "",
+			Message: optionDb.Caller,
 		}
 	} else {
 		outChan <- Response{
 			Type:    New_High,
 			Price:   optionDb.OptionStarting,
 			PctGain: 0,
-			Message: "",
+			Message: optionDb.Caller,
 		}
 	}
 
@@ -136,7 +136,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
 					outChan <- Response{
 						Type:    Expired,
-						Message: "closing channel for option due to day trade",
+						Message: optionDb.Caller,
 					}
 					log.Println("Removed options ticker " + prettyStr)
 					return
@@ -153,7 +153,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					log.Println("Option " + prettyStr + " hit weekly expire. Called: " + callTimeCarbon.DateTimeString())
 					outChan <- Response{
 						Type:    Expired,
-						Message: "weird exp rule",
+						Message: optionDb.Caller,
 					}
 					log.Println("Removed options ticker " + prettyStr)
 					return
@@ -189,8 +189,9 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 			if newPrice > highest {
 				highest = newPrice
 				outChan <- Response{
-					Type:  New_High,
-					Price: newPrice,
+					Type:    New_High,
+					Price:   newPrice,
+					Message: optionDb.Caller,
 				}
 			}
 
@@ -242,6 +243,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 
 				}
@@ -255,6 +257,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -268,6 +271,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -282,6 +286,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -297,6 +302,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -313,6 +319,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -330,6 +337,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -348,6 +356,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}
@@ -367,6 +376,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: pctDiff,
+						Message: optionDb.Caller,
 					}
 				}
 			}

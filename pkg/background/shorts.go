@@ -73,8 +73,9 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
 		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
-			Type:  Expired,
-			Price: final,
+			Type:    Expired,
+			Price:   final,
+			Message: dbShort.Caller,
 		}
 		return
 	}
@@ -84,14 +85,14 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			Type:    New_High,
 			Price:   lowest,
 			PctGain: 0,
-			Message: "",
+			Message: dbShort.Caller,
 		}
 	} else {
 		outChan <- Response{
 			Type:    New_High,
 			Price:   dbShort.ShortStarting,
 			PctGain: 0,
-			Message: "",
+			Message: dbShort.Caller,
 		}
 	}
 
@@ -103,7 +104,8 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if !db.IsTradingHours() {
 				if dbShort.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
 					outChan <- Response{
-						Type: Expired,
+						Type:    Expired,
+						Message: dbShort.Caller,
 					}
 					return
 				}
@@ -125,16 +127,18 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if newPrice < lowest {
 				lowest = newPrice
 				outChan <- Response{
-					Type:  New_High,
-					Price: newPrice,
+					Type:    New_High,
+					Price:   newPrice,
+					Message: dbShort.Caller,
 				}
 			}
 
 			if dbShort.ShortSPt > 0 && !hasAlertedSPT {
 				if newPrice <= dbShort.ShortSPt {
 					outChan <- Response{
-						Type:  PT1,
-						Price: newPrice,
+						Type:    PT1,
+						Price:   newPrice,
+						Message: dbShort.Caller,
 					}
 				}
 				hasAlertedSPT = true
@@ -143,8 +147,9 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 			if dbShort.ShortEPt > 0 {
 				if newPrice <= dbShort.ShortEPt {
 					outChan <- Response{
-						Type:  PT2,
-						Price: newPrice,
+						Type:    PT2,
+						Price:   newPrice,
+						Message: dbShort.Caller,
 					}
 					return
 				}
@@ -152,8 +157,9 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 
 			if dbShort.ShortStop != 0 && newPrice >= dbShort.ShortStop {
 				outChan <- Response{
-					Type:  SL,
-					Price: newPrice,
+					Type:    SL,
+					Price:   newPrice,
+					Message: dbShort.Caller,
 				}
 				return
 			}
@@ -165,8 +171,9 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 				if math.Abs(float64(pctDiff)) <= 0.5 {
 					poiHit = true
 					outChan <- Response{
-						Type:  POI,
-						Price: newPrice,
+						Type:    POI,
+						Price:   newPrice,
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -179,6 +186,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -191,6 +199,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -204,6 +213,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -218,6 +228,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -233,6 +244,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -250,6 +262,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -267,6 +280,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -285,6 +299,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
@@ -304,6 +319,7 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 						Type:    Price,
 						Price:   newPrice,
 						PctGain: float32(math.Abs(float64(pctDiff))),
+						Message: dbShort.Caller,
 					}
 				}
 			}
