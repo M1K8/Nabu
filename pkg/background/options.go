@@ -102,11 +102,12 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 	if callTimeCarbon.DiffInWeeks(nowCarbon, true) == 0 &&
 		callTimeCarbon.DiffInDays(nowCarbon, false) > 2 &&
 		callTimeCarbon.DiffInWeeks(expiryCarbon, false) == 0 {
+		log.Println("Option " + prettyStr + " hit weekly expire. Called: " + callTimeCarbon.DateTimeString())
 		outChan <- Response{
 			Type:    Expired,
 			Message: optionDb.Caller,
 		}
-		log.Println("Removed options ticker " + prettyStr)
+		log.Println("Removed options ticker due to weird rule" + prettyStr)
 		return
 	}
 
@@ -155,7 +156,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Type:    Expired,
 						Message: optionDb.Caller,
 					}
-					log.Println("Removed options ticker " + prettyStr)
+					log.Println("Removed options ticker due to weird rule" + prettyStr)
 					return
 				}
 
