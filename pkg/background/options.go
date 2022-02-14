@@ -167,6 +167,8 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 			if newPrice == 0 {
 				newPrice = last
+				log.Println("Price is zero, waiting 2 mins for " + prettyStr)
+				time.Sleep(2 * time.Minute)
 			} else {
 				last = newPrice
 			}
