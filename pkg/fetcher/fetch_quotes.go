@@ -85,7 +85,7 @@ func NewFetcher() *DefaultFetcher {
 		finn := cfg.StocksCFG.Finn_API
 
 		if finn == "" {
-			fmt.Println("finn nil")
+			panic("finn nil")
 		}
 
 		fetcher = &DefaultFetcher{
@@ -119,7 +119,6 @@ func (d *DefaultFetcher) GetStock(stock string) (float32, error) {
 	}
 
 	if lastBidAsk.GetC() == 0 {
-		fmt.Println(lastBidAsk)
 		return -1, errors.New("ticker not found")
 	}
 
@@ -205,10 +204,21 @@ func (d *DefaultFetcher) GetOption(ticker, contractType, day, month, year string
 		return -1, "", err
 	}
 	if quoteResp.Status != "OK" || resp.StatusCode != 200 || quoteResp.Results.P == 0 {
-		fmt.Printf("Error pinging Polygon, using last known price %v\n", resp.Status)
+		log.Printf("Error pinging Polygon, falling back to snapshot endpoint %v\n", resp.Status)
+
+		snapshot, _, err := d.GetOptionAdvanced(ticker, contractType, day, month, year, price)
+
+		if err != nil {
+			log.Println(err)
+			return last, optionID, nil
+		}
+
+		if snapshot.Results.LastQuote.Ask == 0 {
+			log.Println("snapshot is also nil")
+			return last, optionID, nil
+		}
 		// instead of fallback, try the retry lib https://github.com/cenkalti/backoff
-		//return GetOptionYahoo(ticker, contractType, day, month, year, price)
-		return last, optionID, nil
+		return float32(snapshot.Results.LastQuote.Ask), optionID, nil
 	}
 	return float32(quoteResp.Results.P), optionID, nil
 }
@@ -257,7 +267,7 @@ func GetOptionYahoo(ticker, contractType, day, month, year string, price float32
 	}
 
 	if resp.StatusCode != 200 {
-		fmt.Println(resp.StatusCode)
+		log.Println(resp.StatusCode)
 		return -1, "", nil
 	}
 
