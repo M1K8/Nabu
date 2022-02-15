@@ -44,12 +44,19 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		200: false,
 	}
 
+	dbShort, err := b.Repo.GetShort(ticker)
+	if err != nil {
+		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
+		return
+	}
+	poiHit = dbShort.ShortPOIHit
+	lowest := dbShort.ShortLowest
+
 	defer (func() {
 		log.Println("closing channel for short " + ticker)
-		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
 			Type:  Exit,
-			Price: final,
+			Price: lowest,
 		}
 		//close(exit)
 		//close(outChan)
@@ -62,13 +69,6 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-	dbShort, err := b.Repo.GetShort(ticker)
-	if err != nil {
-		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
-		return
-	}
-	poiHit = dbShort.ShortPOIHit
-	lowest := dbShort.ShortLowest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
 		final, _ := b.Fetcher.GetStock(ticker)

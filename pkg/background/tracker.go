@@ -31,7 +31,7 @@ func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 		log.Println("|||||||||||Spinning tracker - " + gid)
 		now, _ := carbon.NowInLocation("America/Detroit")
 		if !db.IsTradingHours() {
-			log.Println("|||||||||||Outside of trading hours - " + gid)
+			log.Println("|||||||||||AH - Tracker being submitted - " + gid)
 			if now.Hour() == 16 && !hasPosted { // if it isnt end of trading day - say bot is started outside of trading hours
 				outChan <- Response{
 					Type: 7,

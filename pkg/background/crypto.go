@@ -55,8 +55,6 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 		//close(exit)
 		//close(outChan)
 	})()
-
-	// move this to Kronos, pass it in
 	coinDb, err := b.Repo.GetCrypto(ticker)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to get crypto from db %v: %w", ticker, err))
@@ -66,10 +64,9 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 	highest := coinDb.CryptoHighest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
-		final, _ := b.Fetcher.GetCrypto(ticker, false)
 		outChan <- Response{
 			Type:    Expired,
-			Price:   final,
+			Price:   highest,
 			PctGain: 0,
 			Message: coinDb.Caller,
 		}

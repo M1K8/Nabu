@@ -43,13 +43,19 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		100: false,
 		200: false,
 	}
+	dbStock, err := b.Repo.GetStock(ticker)
+	if err != nil {
+		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
+		return
+	}
+	poiHit = dbStock.StockPOIHit
+	highest := dbStock.StockHighest
 
 	defer (func() {
 		log.Println("closing channel for Stock " + ticker)
-		final, _ := b.Fetcher.GetStock(ticker)
 		outChan <- Response{
 			Type:  Exit,
-			Price: final,
+			Price: highest,
 		}
 		//close(exit)
 		//close(outChan)
@@ -62,13 +68,6 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		}
 
 	}
-	dbStock, err := b.Repo.GetStock(ticker)
-	if err != nil {
-		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
-		return
-	}
-	poiHit = dbStock.StockPOIHit
-	highest := dbStock.StockHighest
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
 		final, _ := b.Fetcher.GetStock(ticker)

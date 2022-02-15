@@ -48,12 +48,23 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
 	oID := utils.GetCode(ticker, contractType, day, month, year, price)
 
+	optionDb, err := b.Repo.GetOption(oID)
+	if err != nil {
+		log.Println(fmt.Errorf("unable to get option from db %v: %w", prettyStr, err))
+		outChan <- Response{
+			Type:    Error,
+			Message: err.Error(),
+		}
+		return
+	}
+	poiHit = optionDb.OptionUnderlyingPOIHit
+	highest := optionDb.OptionHighest
+
 	defer (func() {
 		log.Println("closing channel for option " + prettyStr)
-		final, _, _ := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 		outChan <- Response{
 			Type:  Exit,
-			Price: final,
+			Price: highest,
 		}
 		//close(exit)
 		//close(outChan)
@@ -69,18 +80,6 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		return
 	}
 	now := time.Now()
-
-	optionDb, err := b.Repo.GetOption(oID)
-	if err != nil {
-		log.Println(fmt.Errorf("unable to get option from db %v: %w", prettyStr, err))
-		outChan <- Response{
-			Type:    Error,
-			Message: err.Error(),
-		}
-		return
-	}
-	poiHit = optionDb.OptionUnderlyingPOIHit
-	highest := optionDb.OptionHighest
 
 	// remove alert if contract has expired
 	if !expiryDate.IsZero() && now.After(expiryDate) {
