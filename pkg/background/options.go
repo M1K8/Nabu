@@ -70,7 +70,8 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		//close(outChan)
 	})()
 
-	expiryDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v-%v-%vT20:59:59Z", year, month, day))
+	expiryDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v-%v-%vT20:59:59.69Z", year, month, day))
+	expiryDate = expiryDate.Add(24 * time.Hour)
 	if err != nil {
 		log.Println(err.Error())
 		outChan <- Response{
