@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expiry, guildID, author string, exit chan bool) {
+func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expiry, guildID, author string, exit chan bool, inChan <-chan Response) {
 	tick := time.NewTicker(10000 * time.Millisecond)
 	log.Println("Starting BG Scan for Crypto " + ticker)
 	var expiryDate time.Time
@@ -93,6 +93,16 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 		select {
 		case <-exit:
 			return
+		case m := <-inChan:
+			switch m.Type {
+			case New_Avg:
+				log.Println("Getting new Avg for crypto " + ticker)
+				coinDb, err = b.Repo.GetCrypto(ticker)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Crypto from db %v: %w", ticker, err))
+					return
+				}
+			}
 		case <-tick.C:
 			newPrice, err := b.Fetcher.GetCrypto(ticker, false)
 			if err != nil {
@@ -149,7 +159,7 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 				return
 			}
 
-			if newPrice < (1-trailingPct)*highest {
+			if trailingPct != 0 && newPrice < (1-trailingPct)*highest {
 				outChan <- Response{
 					Type:    TSL,
 					Price:   newPrice,

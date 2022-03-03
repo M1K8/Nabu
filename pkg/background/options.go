@@ -28,7 +28,7 @@ import (
 	"github.com/uniplaces/carbon"
 )
 
-func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool) {
+func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool, inChan <-chan Response) {
 	tick := time.NewTicker(750 * time.Millisecond)
 	var last float32 = 0.0
 
@@ -133,6 +133,16 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		select {
 		case <-exit:
 			return
+		case m := <-inChan:
+			switch m.Type {
+			case New_Avg:
+				log.Println("Getting new Avg for option " + oID)
+				optionDb, err = b.Repo.GetOption(oID)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Option from db %v: %w", oID, err))
+					return
+				}
+			}
 		case <-tick.C:
 			if !db.IsTradingHours() {
 				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
@@ -199,7 +209,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				}
 			}
 
-			if newPrice < (1-trailingPct)*highest {
+			if trailingPct != 0 && newPrice < (1-trailingPct)*highest {
 				outChan <- Response{
 					Type:    TSL,
 					Price:   newPrice,

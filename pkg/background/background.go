@@ -27,7 +27,7 @@ type Background struct {
 }
 
 type Response struct {
-	Type    ResponseType // 0 price, 1 expired, 2 PT1, 3 PT2, 4 SL, 5 POI, 6 New Hig, 7 EoD 9 other
+	Type    ResponseType // 0 price, 1 expired, 2 PT1, 3 PT2, 4 SL, 5 POI, 6 New Hig, 7 EoD, 8 New AVG 9 other
 	Price   float32
 	PctGain float32
 	Message string
@@ -44,6 +44,7 @@ const (
 	TSL
 	POI
 	New_High
+	New_Avg
 	EoD
 	Error
 	Exit

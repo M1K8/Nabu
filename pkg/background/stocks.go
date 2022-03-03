@@ -26,7 +26,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author, expiry string, guildID string, exit chan bool) {
+func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author, expiry string, guildID string, exit chan bool, inChan <-chan Response) {
 	log.Println("Starting BG Scan for Stock " + ticker)
 	tick := time.NewTicker(45 * time.Second) // slow because api is slow
 	var expiryDate time.Time
@@ -99,6 +99,16 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		select {
 		case <-exit:
 			return
+		case m := <-inChan:
+			switch m.Type {
+			case New_Avg:
+				log.Println("Getting new Avg for stock " + ticker)
+				dbStock, err = b.Repo.GetStock(ticker)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
+					return
+				}
+			}
 		case <-tick.C:
 			if !db.IsTradingHours() {
 				if dbStock.ChannelType == utils.DAY || !expiryDate.IsZero() && time.Now().After(expiryDate) {
@@ -154,7 +164,7 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 				}
 			}
 
-			if newPrice < (1-trailingPct)*highest {
+			if trailingPct != 0 && newPrice < (1-trailingPct)*highest {
 				outChan <- Response{
 					Type:    TSL,
 					Price:   newPrice,
