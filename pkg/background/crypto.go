@@ -29,7 +29,6 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 	var expiryDate time.Time
 	var err error = nil
 	hasAlertedSPT := false
-	poiHit := false
 
 	hasPingedOverPct := map[float32]bool{ //500, 1000, 2000
 		10:  false,
@@ -60,8 +59,9 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 		log.Println(fmt.Errorf("unable to get crypto from db %v: %w", ticker, err))
 		return
 	}
-	poiHit = coinDb.CryptoPOIHit
+	poiHit := coinDb.CryptoPOIHit
 	highest := coinDb.CryptoHighest
+	trailingPct := coinDb.CryptoTrailingStop / 100
 
 	if !expiryDate.IsZero() && time.Now().After(expiryDate) {
 		outChan <- Response{
@@ -144,6 +144,15 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 					Type:    SL,
 					Price:   newPrice,
 					PctGain: 0,
+					Message: coinDb.Caller,
+				}
+				return
+			}
+
+			if newPrice < (1-trailingPct)*highest {
+				outChan <- Response{
+					Type:    TSL,
+					Price:   newPrice,
 					Message: coinDb.Caller,
 				}
 				return

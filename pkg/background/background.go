@@ -41,6 +41,7 @@ const (
 	PT1
 	PT2
 	SL
+	TSL
 	POI
 	New_High
 	EoD
@@ -66,18 +67,18 @@ type Repo interface {
 	RefreshFromDB() ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
 
 	GetOption(string) (*harpe.Option, error)
-	CreateOption(string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
+	CreateOption(string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
 	RemoveOption(string, string, string, string, string, float32) error
 
-	CreateShort(string, string, int, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
+	CreateShort(string, string, int, float32, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
 	RemoveShort(string) error
 	GetShort(string) (*harpe.Short, error)
 
-	CreateStock(string, string, int, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
+	CreateStock(string, string, int, float32, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
 	RemoveStock(string) error
 	GetStock(string) (*harpe.Stock, error)
 
-	CreateCrypto(string, string, float32, float32, float32, float32, int, float32) (chan bool, bool, error)
+	CreateCrypto(string, string, float32, float32, float32, float32, float32, int, float32) (chan bool, bool, error)
 	RemoveCrypto(string) error
 	GetCrypto(string) (*harpe.Crypto, error)
 }

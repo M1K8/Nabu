@@ -32,7 +32,6 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 	var expiryDate time.Time
 	var err error = nil
 	hasAlertedSPT := false
-	poiHit := false
 	hasPingedOverPct := map[float32]bool{ // 3, 5, 10, 15, 20, 25, 50, 100, 200
 		3:   false,
 		5:   false,
@@ -48,8 +47,9 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		log.Println(fmt.Errorf("unable to get Stock from db %v: %w", ticker, err))
 		return
 	}
-	poiHit = dbStock.StockPOIHit
+	poiHit := dbStock.StockPOIHit
 	highest := dbStock.StockHighest
+	trailingPct := dbStock.StockTrailingStop / 100
 
 	defer (func() {
 		log.Println("closing channel for Stock " + ticker)
@@ -152,6 +152,15 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 					}
 					return
 				}
+			}
+
+			if newPrice < (1-trailingPct)*highest {
+				outChan <- Response{
+					Type:    TSL,
+					Price:   newPrice,
+					Message: dbStock.Caller,
+				}
+				return
 			}
 
 			if dbStock.StockStop != 0 && newPrice <= dbStock.StockStop {

@@ -32,7 +32,6 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 	var expiryDate time.Time
 	var err error = nil
 	hasAlertedSPT := false
-	poiHit := false
 	hasPingedOverPct := map[float32]bool{ // 3, 5, 10, 15, 20, 25, 50, 100, 200
 		3:   false,
 		5:   false,
@@ -49,8 +48,9 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 		log.Println(fmt.Errorf("unable to get short from db %v: %w", ticker, err))
 		return
 	}
-	poiHit = dbShort.ShortPOIHit
+	poiHit := dbShort.ShortPOIHit
 	lowest := dbShort.ShortLowest
+	trailingPct := dbShort.ShortTrailingStop / 100
 
 	defer (func() {
 		log.Println("closing channel for short " + ticker)
@@ -153,6 +153,15 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					}
 					return
 				}
+			}
+
+			if newPrice > (1+trailingPct)*lowest {
+				outChan <- Response{
+					Type:    TSL,
+					Price:   newPrice,
+					Message: dbShort.Caller,
+				}
+				return
 			}
 
 			if dbShort.ShortStop != 0 && newPrice >= dbShort.ShortStop {

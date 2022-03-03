@@ -31,7 +31,6 @@ import (
 func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool) {
 	tick := time.NewTicker(750 * time.Millisecond)
 	var last float32 = 0.0
-	poiHit := false
 
 	log.Println("Starting BG Scan for Options " + utils.NiceStr(ticker, contractType, day, month, year, price))
 	hasPingedOverPct := map[float32]bool{ //: 5, 10, 20, 25, 50, 100, 200, 500, 1000
@@ -57,8 +56,9 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		}
 		return
 	}
-	poiHit = optionDb.OptionUnderlyingPOIHit
+	poiHit := optionDb.OptionUnderlyingPOIHit
 	highest := optionDb.OptionHighest
+	trailingPct := optionDb.OptionTrailingStop / 100
 
 	defer (func() {
 		log.Println("closing channel for option " + prettyStr)
@@ -86,8 +86,9 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 	if !expiryDate.IsZero() && now.After(expiryDate) {
 		final, _, _ := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 		outChan <- Response{
-			Type:  Expired,
-			Price: final,
+			Type:    Expired,
+			Price:   final,
+			Message: fmt.Sprintf("%v", expiryDate),
 		}
 		return
 	}
@@ -196,6 +197,15 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					Price:   newPrice,
 					Message: optionDb.Caller,
 				}
+			}
+
+			if newPrice < (1-trailingPct)*highest {
+				outChan <- Response{
+					Type:    TSL,
+					Price:   newPrice,
+					Message: optionDb.Caller,
+				}
+				return
 			}
 
 			if optionDb.OptionUnderlyingPoI > 0 || optionDb.OptionUnderlyingStop > 0 {
@@ -363,7 +373,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					}
 				}
 			}
-			if pctDiff >= 1000 {
+			if pctDiff >= 1000 && pctDiff < 5000 {
 				if !hasPingedOverPct[1000] {
 					hasPingedOverPct[5] = true
 					hasPingedOverPct[10] = true
@@ -375,6 +385,28 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					hasPingedOverPct[500] = true
 					hasPingedOverPct[1000] = true
 					log.Println(fmt.Sprintf("%v reached %.2f | 1000", ticker, pctDiff))
+					outChan <- Response{
+						Type:    Price,
+						Price:   newPrice,
+						PctGain: pctDiff,
+						Message: optionDb.Caller,
+					}
+				}
+			}
+
+			if pctDiff >= 5000 {
+				if !hasPingedOverPct[5000] {
+					hasPingedOverPct[5] = true
+					hasPingedOverPct[10] = true
+					hasPingedOverPct[20] = true
+					hasPingedOverPct[25] = true
+					hasPingedOverPct[50] = true
+					hasPingedOverPct[100] = true
+					hasPingedOverPct[200] = true
+					hasPingedOverPct[500] = true
+					hasPingedOverPct[1000] = true
+					hasPingedOverPct[5000] = true
+					log.Println(fmt.Sprintf("%v reached %.2f | 5000", ticker, pctDiff))
 					outChan <- Response{
 						Type:    Price,
 						Price:   newPrice,
