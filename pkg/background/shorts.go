@@ -109,6 +109,16 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 					log.Println(fmt.Errorf("unable to get Short from db %v: %w", ticker, err))
 					return
 				}
+				lowest = dbShort.ShortLowest
+				hasPingedOverPct[3] = false
+				hasPingedOverPct[5] = false
+				hasPingedOverPct[10] = false
+				hasPingedOverPct[15] = false
+				hasPingedOverPct[20] = false
+				hasPingedOverPct[25] = false
+				hasPingedOverPct[50] = false
+				hasPingedOverPct[100] = false
+				hasPingedOverPct[200] = false
 			}
 		case <-tick.C:
 			if !db.IsTradingHours() {

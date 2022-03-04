@@ -142,6 +142,17 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					log.Println(fmt.Errorf("unable to get Option from db %v: %w", oID, err))
 					return
 				}
+				highest = optionDb.OptionStarting // as we're basically resetting the alert, reset the new highest
+				hasPingedOverPct[5] = false
+				hasPingedOverPct[10] = false
+				hasPingedOverPct[20] = false
+				hasPingedOverPct[25] = false
+				hasPingedOverPct[50] = false
+				hasPingedOverPct[100] = false
+				hasPingedOverPct[200] = false
+				hasPingedOverPct[500] = false
+				hasPingedOverPct[1000] = false
+				hasPingedOverPct[5000] = false
 			}
 		case <-tick.C:
 			if !db.IsTradingHours() {

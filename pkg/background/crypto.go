@@ -102,6 +102,15 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 					log.Println(fmt.Errorf("unable to get Crypto from db %v: %w", ticker, err))
 					return
 				}
+				highest = coinDb.CryptoStarting
+				hasPingedOverPct[10] = false
+				hasPingedOverPct[30] = false
+				hasPingedOverPct[50] = false
+				hasPingedOverPct[100] = false
+				hasPingedOverPct[200] = false
+				hasPingedOverPct[500] = false
+				hasPingedOverPct[1000] = false
+				hasPingedOverPct[2000] = false
 			}
 		case <-tick.C:
 			newPrice, err := b.Fetcher.GetCrypto(ticker, false)
