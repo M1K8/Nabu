@@ -28,17 +28,17 @@ import (
 func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 	hasPosted := false
 	for {
-		log.Println("|||||||||||Spinning tracker - " + gid)
+		log.Println("Spinning tracker - " + gid)
 		now, _ := carbon.NowInLocation("America/Detroit")
-		if !db.IsTradingHours() {
-			log.Println("|||||||||||AH - Tracker being submitted - " + gid)
+		if !db.IsTradingHours() && !hasPosted {
+			log.Println("AH - Tracker being submitted - " + gid)
 			if now.Hour() == 16 && !hasPosted { // if it isnt end of trading day - say bot is started outside of trading hours
 				outChan <- Response{
-					Type: 7,
+					Type: EoD,
 				}
 				hasPosted = true
 			} else {
-				log.Println(fmt.Sprintf("||||||||||Tracker sleeping until market open - %v - ", utils.GetTimeToOpen()) + gid)
+				log.Println(fmt.Sprintf("Tracker sleeping until market open - %v - ", utils.GetTimeToOpen()) + gid)
 				hasPosted = false
 				tts := utils.GetTimeToOpen()
 
@@ -50,7 +50,7 @@ func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 			}
 		} else {
 			sleepTime := now.StartOfDay().Add(16*time.Hour + 1*time.Minute).Sub(now.Time)
-			log.Println(fmt.Sprintf("||||||||||Tracker sleeping until market close - %v - ", sleepTime) + gid)
+			log.Println(fmt.Sprintf("Tracker sleeping until market close - %v - ", sleepTime) + gid)
 			hasPosted = false
 
 			if sleepTime <= 0 { //idk lol
