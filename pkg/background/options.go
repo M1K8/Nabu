@@ -257,14 +257,29 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						}
 
 						priceU := float32(underlying.Results.UnderlyingAsset.Price)
-						if optionDb.OptionUnderlyingStop > 0 && priceU <= optionDb.OptionUnderlyingStop {
-							log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
-							outChan <- Response{
-								Type:  SL,
-								Price: newPrice,
+
+						if strings.ToLower(contractType) == "p" {
+							if optionDb.OptionUnderlyingStop > 0 && priceU >= optionDb.OptionUnderlyingStop {
+								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
+								outChan <- Response{
+									Type:  SL,
+									Price: newPrice,
+								}
+								return
 							}
-							return
+						} else if strings.ToLower(contractType) == "c" {
+							if optionDb.OptionUnderlyingStop > 0 && priceU <= optionDb.OptionUnderlyingStop {
+								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
+								outChan <- Response{
+									Type:  SL,
+									Price: newPrice,
+								}
+								return
+							}
+						} else {
+							log.Println(contractType)
 						}
+
 					}
 				}
 			}
