@@ -153,6 +153,11 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				hasPingedOverPct[500] = false
 				hasPingedOverPct[1000] = false
 				hasPingedOverPct[5000] = false
+				outChan <- Response{
+					Type:    New_Avg,
+					Price:   highest,
+					Message: optionDb.Caller,
+				}
 			}
 		case <-tick.C:
 			if !db.IsTradingHours() {

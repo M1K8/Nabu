@@ -118,6 +118,11 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 				hasPingedOverPct[50] = false
 				hasPingedOverPct[100] = false
 				hasPingedOverPct[200] = false
+				outChan <- Response{
+					Type:    New_Avg,
+					Price:   highest,
+					Message: dbStock.Caller,
+				}
 			}
 		case <-tick.C:
 			if !db.IsTradingHours() {

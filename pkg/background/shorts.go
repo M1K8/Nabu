@@ -119,6 +119,11 @@ func (b *Background) CheckShortPriceInBG(outChan chan<- Response, ticker, author
 				hasPingedOverPct[50] = false
 				hasPingedOverPct[100] = false
 				hasPingedOverPct[200] = false
+				outChan <- Response{
+					Type:    New_Avg,
+					Price:   lowest,
+					Message: dbShort.Caller,
+				}
 			}
 		case <-tick.C:
 			if !db.IsTradingHours() {

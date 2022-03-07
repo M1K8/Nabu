@@ -111,6 +111,13 @@ func (b *Background) CheckCryptoPriceInBG(outChan chan<- Response, ticker, expir
 				hasPingedOverPct[500] = false
 				hasPingedOverPct[1000] = false
 				hasPingedOverPct[2000] = false
+
+				outChan <- Response{
+					Type:    New_Avg,
+					Price:   highest,
+					PctGain: 0,
+					Message: coinDb.Caller,
+				}
 			}
 		case <-tick.C:
 			newPrice, err := b.Fetcher.GetCrypto(ticker, false)
