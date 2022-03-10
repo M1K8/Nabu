@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -29,7 +28,7 @@ import (
 )
 
 func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool, inChan <-chan Response) {
-	tick := time.NewTicker(750 * time.Millisecond)
+	tick := time.NewTicker(333 * time.Millisecond)
 	var last float32 = 0.0
 
 	log.Println("Starting BG Scan for Options " + utils.NiceStr(ticker, contractType, day, month, year, price))
@@ -160,6 +159,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				}
 			}
 		case <-tick.C:
+			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 			if !db.IsTradingHours() {
 				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
 					outChan <- Response{
@@ -191,104 +191,44 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				log.Printf("wait: %v \n", utils.GetTimeToOpen())
 				time.Sleep(utils.GetTimeToOpen())
 			}
-			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 			if newPrice == 0 {
 				newPrice = last
 				log.Println("Price is zero, waiting 2 mins for " + prettyStr)
 				time.Sleep(2 * time.Minute)
+			} else if newPrice == -1 {
+				log.Println("Rate limited - try again in a few minutes")
+				continue
 			} else {
 				last = newPrice
 			}
+
 			if err != nil {
 				if strings.Contains(err.Error(), "Price is 0") {
-					s1 := rand.NewSource(time.Now().UnixNano())
-					r := rand.New(s1)
 					log.Println("option " + prettyStr + " is zeroing out :(")
-					time.Sleep(120*time.Second + (time.Duration(r.Intn(30)) * time.Second))
+					time.Sleep(120 * time.Second)
 					continue
 				}
 				log.Println(fmt.Errorf("unable to get option for %v: %w", prettyStr, err))
 				continue
 			}
 
-			if newPrice == -1 {
-				log.Println("Rate limited - try again in a few minutes")
-				continue
-			}
-
-			if newPrice > highest {
-				highest = newPrice
-				outChan <- Response{
-					Type:    New_High,
-					Price:   newPrice,
-					Message: optionDb.Caller,
-				}
-			}
-
-			if trailingPct != 0 && newPrice < (1-trailingPct)*highest {
-				outChan <- Response{
-					Type:    TSL,
-					Price:   newPrice,
-					Message: optionDb.Caller,
-				}
-				return
-			}
-
-			if optionDb.OptionUnderlyingPoI > 0 || optionDb.OptionUnderlyingStop > 0 {
-				underlying, _, err := b.Fetcher.GetOptionAdvanced(ticker, contractType, day, month, year, price)
-
-				if err != nil {
-					log.Println(err)
-				} else {
-					if time.Since(time.Unix(underlying.Results.UnderlyingAsset.LastUpdated, 0)) <= (time.Second * 2) {
-						// hopefully prevents shenanigans
-
-						if optionDb.OptionUnderlyingPoI > 0 && !poiHit {
-							underPctDiff := math.Abs((underlying.Results.UnderlyingAsset.Price - float64(optionDb.OptionUnderlyingStarting)) / float64(optionDb.OptionUnderlyingStarting) * 100)
-
-							if underPctDiff <= 1 {
-								log.Println("POI Hit for " + ticker)
-								outChan <- Response{
-									Type:  POI,
-									Price: newPrice,
-								}
-								poiHit = true
-							}
-						}
-
-						priceU := float32(underlying.Results.UnderlyingAsset.Price)
-
-						if strings.ToLower(contractType) == "p" {
-							if optionDb.OptionUnderlyingStop > 0 && priceU >= optionDb.OptionUnderlyingStop {
-								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
-								outChan <- Response{
-									Type:  SL,
-									Price: newPrice,
-								}
-								return
-							}
-						} else if strings.ToLower(contractType) == "c" {
-							if optionDb.OptionUnderlyingStop > 0 && priceU <= optionDb.OptionUnderlyingStop {
-								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
-								outChan <- Response{
-									Type:  SL,
-									Price: newPrice,
-								}
-								return
-							}
-						} else {
-							log.Println(contractType)
-						}
-
+			go func() {
+				if newPrice > highest {
+					highest = newPrice
+					outChan <- Response{
+						Type:    New_High,
+						Price:   newPrice,
+						Message: optionDb.Caller,
 					}
 				}
-			}
+			}()
 			priceDiff := newPrice - optionDb.OptionStarting
 			if priceDiff == 0 {
 				continue
 			}
 
 			pctDiff := (priceDiff / optionDb.OptionStarting) * 100
+
 			if pctDiff >= 5 && pctDiff < 10 {
 				if !hasPingedOverPct[5] {
 					hasPingedOverPct[5] = true
@@ -434,7 +374,6 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					}
 				}
 			}
-
 			if pctDiff >= 5000 {
 				if !hasPingedOverPct[5000] {
 					hasPingedOverPct[5] = true
@@ -453,6 +392,65 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 						Price:   newPrice,
 						PctGain: pctDiff,
 						Message: optionDb.Caller,
+					}
+				}
+			}
+
+			if trailingPct != 0 && newPrice < (1-trailingPct)*highest {
+				outChan <- Response{
+					Type:    TSL,
+					Price:   newPrice,
+					Message: optionDb.Caller,
+				}
+				return
+			}
+
+			if optionDb.OptionUnderlyingPoI > 0 || optionDb.OptionUnderlyingStop > 0 {
+				underlying, _, err := b.Fetcher.GetOptionAdvanced(ticker, contractType, day, month, year, price)
+
+				if err != nil {
+					log.Println(err)
+				} else {
+					if time.Since(time.Unix(underlying.Results.UnderlyingAsset.LastUpdated, 0)) <= (time.Second * 2) {
+						// hopefully prevents shenanigans
+
+						if optionDb.OptionUnderlyingPoI > 0 && !poiHit {
+							underPctDiff := math.Abs((underlying.Results.UnderlyingAsset.Price - float64(optionDb.OptionUnderlyingStarting)) / float64(optionDb.OptionUnderlyingStarting) * 100)
+
+							if underPctDiff <= 1 {
+								log.Println("POI Hit for " + ticker)
+								outChan <- Response{
+									Type:  POI,
+									Price: newPrice,
+								}
+								poiHit = true
+							}
+						}
+
+						priceU := float32(underlying.Results.UnderlyingAsset.Price)
+
+						if strings.ToLower(contractType) == "p" {
+							if optionDb.OptionUnderlyingStop > 0 && priceU >= optionDb.OptionUnderlyingStop {
+								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
+								outChan <- Response{
+									Type:  SL,
+									Price: newPrice,
+								}
+								return
+							}
+						} else if strings.ToLower(contractType) == "c" {
+							if optionDb.OptionUnderlyingStop > 0 && priceU <= optionDb.OptionUnderlyingStop {
+								log.Println(fmt.Sprintf("Stop Hit for %v - $%.2f", ticker, priceU))
+								outChan <- Response{
+									Type:  SL,
+									Price: newPrice,
+								}
+								return
+							}
+						} else {
+							log.Println(contractType)
+						}
+
 					}
 				}
 			}
