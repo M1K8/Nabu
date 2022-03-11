@@ -65,12 +65,9 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 			Type:  Exit,
 			Price: highest,
 		}
-		//close(exit)
-		//close(outChan)
 	})()
 
-	expiryDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v-%v-%vT20:59:59.69Z", year, month, day))
-	expiryDate = expiryDate.Add(24 * time.Hour)
+	expiryDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v-%v-%vT20:59:58Z", year, month, day))
 	if err != nil {
 		log.Println(err.Error())
 		outChan <- Response{
@@ -161,7 +158,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		case <-tick.C:
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 			if !db.IsTradingHours() {
-				if optionDb.ChannelType == utils.DAY || !expiryDate.IsZero() && now.After(expiryDate) {
+				if !expiryDate.IsZero() && now.After(expiryDate) {
 					outChan <- Response{
 						Type:    Expired,
 						Message: optionDb.Caller,
