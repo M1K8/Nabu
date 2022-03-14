@@ -158,7 +158,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		case <-tick.C:
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, last)
 			if !db.IsTradingHours() {
-				if !expiryDate.IsZero() && now.After(expiryDate) {
+				if !expiryDate.IsZero() && now.After(expiryDate) || optionDb.ChannelType == utils.DAY {
 					outChan <- Response{
 						Type:    Expired,
 						Message: optionDb.Caller,
@@ -166,6 +166,7 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 					log.Println("Removed options ticker " + prettyStr)
 					return
 				}
+				log.Println(prettyStr + " expiry - " + day + "/" + month)
 				nowCarbon := carbon.NewCarbon(now)
 				nowCarbon.SetTimeZone("America/Detroit")
 				expiryCarbon := carbon.NewCarbon(expiryDate)
