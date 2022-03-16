@@ -250,6 +250,16 @@ func (d *DefaultFetcher) GetOptionAdvanced(ticker, contractType, day, month, yea
 		//return GetOptionYahoo(ticker, contractType, day, month, year, price)
 		return nil, optionID, err
 	}
+
+	if quoteResp.Results.UnderlyingAsset.Price == 0 {
+		underlying, err := d.GetStock(ticker)
+
+		if err != nil {
+			log.Println(fmt.Errorf("Unable to get underlying: %w", err))
+		}
+		quoteResp.Results.UnderlyingAsset.Price = float64(underlying)
+
+	}
 	return &quoteResp, optionID, nil
 }
 
