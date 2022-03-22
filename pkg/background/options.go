@@ -407,7 +407,10 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 				underlying, _, err := b.Fetcher.GetOptionAdvanced(ticker, contractType, day, month, year, price)
 
 				if err != nil {
-					log.Println(err)
+					log.Println(prettyStr + " poi / stop " + err.Error())
+					log.Println(optionDb.OptionUnderlyingStop)
+					log.Println(optionDb.OptionUnderlyingPoI)
+					time.Sleep(5 * time.Second)
 				} else {
 					if time.Since(time.Unix(underlying.Results.UnderlyingAsset.LastUpdated, 0)) <= (time.Second * 2) {
 						// hopefully prevents shenanigans

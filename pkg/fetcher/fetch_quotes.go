@@ -252,14 +252,14 @@ func (d *DefaultFetcher) GetOptionAdvanced(ticker, contractType, day, month, yea
 	}
 
 	if quoteResp.Results.UnderlyingAsset.Price == 0 {
-		underlying, err := d.GetStock(ticker)
-
-		if err != nil {
-			log.Println(fmt.Errorf("Unable to get underlying: %w", err))
-		} else {
-			quoteResp.Results.UnderlyingAsset.Price = float64(underlying)
-			quoteResp.Results.Day.LastUpdated = time.Now().Unix()
-		}
+		//underlying, err := d.GetStock(ticker)
+		//
+		//if err != nil {
+		//	log.Println(fmt.Errorf("Unable to get underlying: %w", err))
+		//} else {
+		//	quoteResp.Results.UnderlyingAsset.Price = float64(underlying)
+		//	quoteResp.Results.Day.LastUpdated = time.Now().Unix()
+		//}
 
 	}
 	return &quoteResp, optionID, nil
