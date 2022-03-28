@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 M1K
+ * Copyright 2022 M1K
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,41 @@ package background
 import (
 	"fmt"
 	"log"
-	"math"
-	"strings"
 	"time"
 
-	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
-	"github.com/uniplaces/carbon"
 )
+
+func (b *Background) CheckOptionPriceInBG(author, ticker, contractType, day, month, year string, price float32, manageChan chan ManageMsg, priceChan chan<- float32, exitChan chan<- bool) {
+	tick := time.NewTicker(333 * time.Millisecond)
+	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
+	log.Println("Starting BG Scan for Option " + prettyStr)
+
+	for {
+		select {
+		case <-tick.C:
+			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
+			if err != nil {
+				log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
+				continue
+			}
+			priceChan <- newPrice
+		case m := <-manageChan:
+			switch m {
+			case Add:
+				b.Add()
+			case Remove:
+				remaining := b.Remove()
+				if remaining <= 0 {
+					exitChan <- true
+					return
+				}
+			}
+		}
+	}
+}
+
+/*
 
 func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, author, ticker, contractType, day, month, year string, price float32, exit chan bool, inChan <-chan Response) {
 	tick := time.NewTicker(333 * time.Millisecond)
@@ -458,3 +485,4 @@ func (b *Background) CheckOptionsPriceInBG(outChan chan<- Response, guildID, aut
 		}
 	}
 }
+*/

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 M1K
+ * Copyright 2022 M1K
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"github.com/uniplaces/carbon"
 )
 
-func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
+func (b *Background) KeepTrack(outChan chan<- bool, gid string) {
 	hasPosted := false
 	for {
 		log.Println("Spinning tracker - " + gid)
@@ -33,9 +33,7 @@ func (b *Background) KeepTrack(outChan chan<- Response, gid string) {
 		if !db.IsTradingHours() && !hasPosted {
 			log.Println("AH - Tracker being submitted - " + gid)
 			if now.Hour() == 16 && !hasPosted { // if it isnt end of trading day - say bot is started outside of trading hours
-				outChan <- Response{
-					Type: EoD,
-				}
+				outChan <- true
 				hasPosted = true
 			} else {
 				log.Println(fmt.Sprintf("Tracker sleeping until market open - %v - ", utils.GetTimeToOpen()) + gid)

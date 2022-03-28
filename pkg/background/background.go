@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 M1K
+ * Copyright 2022 M1K
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,12 @@ import (
 )
 
 type Background struct {
-	Fetcher fetcher.Fetcher
-	Repo    Repo
-	GuildID string
+	Fetcher    fetcher.Fetcher
+	Repo       Repo
+	References int
 }
 
-type Response struct {
-	Type    ResponseType // 0 price, 1 expired, 2 PT1, 3 PT2, 4 SL, 5 POI, 6 New Hig, 7 EoD, 8 New AVG 9 other
-	Price   float32
-	PctGain float32
-	Message string
-}
+type ManageMsg int
 
 type ResponseType int
 
@@ -47,6 +42,9 @@ const (
 	New_Avg
 	EoD
 	Error
+
+	Add ManageMsg = iota
+	Remove
 	Exit
 )
 
@@ -56,7 +54,6 @@ func NewBG(guildID string, repo Repo) *Background {
 	return &Background{
 		Fetcher: fetch,
 		Repo:    repo,
-		GuildID: guildID,
 	}
 }
 
@@ -82,4 +79,13 @@ type Repo interface {
 	CreateCrypto(string, string, float32, float32, float32, float32, float32, int, float32) (chan bool, bool, error)
 	RemoveCrypto(string) error
 	GetCrypto(string) (*harpe.Crypto, error)
+}
+
+func (b *Background) Add() {
+	b.References += 1
+}
+
+func (b *Background) Remove() int {
+	b.References -= 1
+	return b.References
 }

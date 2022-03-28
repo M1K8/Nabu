@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 M1K
+ * Copyright 2022 M1K
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,38 @@ package background
 import (
 	"fmt"
 	"log"
-	"math"
-	"strconv"
 	"time"
-
-	"github.com/m1k8/harpe/pkg/db"
-	"github.com/m1k8/harpe/pkg/utils"
 )
 
+func (b *Background) CheckStockPriceInBG(ticker string, manageChan chan ManageMsg, priceChan chan<- float32, exitChan chan<- bool) {
+	tick := time.NewTicker(45000 * time.Millisecond)
+	log.Println("Starting BG Scan for Stock " + ticker)
+
+	for {
+		select {
+		case <-tick.C:
+			newPrice, err := b.Fetcher.GetStock(ticker)
+			if err != nil {
+				log.Println(fmt.Errorf("unable to get Stock %v: %w", ticker, err))
+				continue
+			}
+			priceChan <- newPrice
+		case m := <-manageChan:
+			switch m {
+			case Add:
+				b.Add()
+			case Remove:
+				remaining := b.Remove()
+				if remaining <= 0 {
+					exitChan <- true
+					return
+				}
+			}
+		}
+	}
+}
+
+/*
 func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author, expiry string, guildID string, exit chan bool, inChan <-chan Response) {
 	log.Println("Starting BG Scan for Stock " + ticker)
 	tick := time.NewTicker(45 * time.Second) // slow because api is slow
@@ -359,3 +383,4 @@ func (b *Background) CheckStockPriceInBG(outChan chan<- Response, ticker, author
 		}
 	}
 }
+*/
