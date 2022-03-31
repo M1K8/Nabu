@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func (b *Background) CheckShortPriceInBG(ticker string, manageChan chan ManageMsg, priceChan chan<- chan float32, exitChan chan<- bool) {
+func (b *Background) CheckShortPriceInBG(ticker, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32, exitChan chan<- bool) {
 	tick := time.NewTicker(45000 * time.Millisecond)
 	log.Println("Starting BG Scan for Short " + ticker)
 
@@ -37,11 +37,10 @@ func (b *Background) CheckShortPriceInBG(ticker string, manageChan chan ManageMs
 		case m := <-manageChan:
 			switch m {
 			case Add:
-				b.Add()
-				newChan := b.addChan()
+				newChan := b.addChan(uid)
 				priceChan <- newChan
 			case Remove:
-				remaining := b.Remove()
+				remaining := b.removeChan(uid)
 				if remaining <= 0 {
 					exitChan <- true
 					return

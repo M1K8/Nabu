@@ -24,7 +24,7 @@ type Background struct {
 	Fetcher    fetcher.Fetcher
 	Repo       Repo
 	References int
-	priceChans []chan float32
+	priceChans map[string]chan float32
 }
 
 type ManageMsg int
@@ -82,19 +82,22 @@ type Repo interface {
 	GetCrypto(string) (*harpe.Crypto, error)
 }
 
-func (b *Background) Add() {
-	b.References += 1
-}
-
 func (b *Background) Remove() int {
 	b.References -= 1
 	return b.References
 }
 
-func (b *Background) addChan() chan float32 {
+func (b *Background) addChan(uid string) chan float32 {
+	b.References += 1
 	newChan := make(chan float32)
-	b.priceChans = append(b.priceChans, newChan)
+	b.priceChans[uid] = newChan
 	return newChan
+}
+
+func (b *Background) removeChan(uid string) int {
+	delete(b.priceChans, uid)
+	b.References -= 1
+	return b.References
 }
 
 func (b *Background) pushPrice(p float32) {
