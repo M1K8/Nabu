@@ -21,9 +21,11 @@ import (
 	"time"
 )
 
-func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan chan ManageMsg, priceChan chan<- float32, exitChan chan<- bool) {
+func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan <-chan ManageMsg, priceChan chan<- chan float32, exitChan chan<- bool) {
 	tick := time.NewTicker(10000 * time.Millisecond)
 	log.Println("Starting BG Scan for Crypto " + ticker)
+
+	// every .Add, add a new channel and pass it back over the mgmt channel
 
 	for {
 		select {
@@ -33,11 +35,13 @@ func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan chan ManageM
 				log.Println(fmt.Errorf("unable to get crypto %v: %w", ticker, err))
 				continue
 			}
-			priceChan <- newPrice
+			b.pushPrice(newPrice)
 		case m := <-manageChan:
 			switch m {
 			case Add:
 				b.Add()
+				newChan := b.addChan()
+				priceChan <- newChan
 			case Remove:
 				remaining := b.Remove()
 				if remaining <= 0 {

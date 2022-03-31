@@ -24,6 +24,7 @@ type Background struct {
 	Fetcher    fetcher.Fetcher
 	Repo       Repo
 	References int
+	priceChans []chan float32
 }
 
 type ManageMsg int
@@ -88,4 +89,16 @@ func (b *Background) Add() {
 func (b *Background) Remove() int {
 	b.References -= 1
 	return b.References
+}
+
+func (b *Background) addChan() chan float32 {
+	newChan := make(chan float32)
+	b.priceChans = append(b.priceChans, newChan)
+	return newChan
+}
+
+func (b *Background) pushPrice(p float32) {
+	for _, v := range b.priceChans {
+		v <- p
+	}
 }
