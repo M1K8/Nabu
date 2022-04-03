@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/m1k8/harpe/pkg/db"
+	"github.com/m1k8/harpe/pkg/utils"
 )
 
 func (b *Background) CheckShortPriceInBG(ticker, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32, exitChan chan<- bool) {
@@ -28,6 +31,9 @@ func (b *Background) CheckShortPriceInBG(ticker, uid string, manageChan chan Man
 	for {
 		select {
 		case <-tick.C:
+			if !db.IsTradingHours() {
+				time.Sleep(utils.GetTimeToOpen())
+			}
 			newPrice, err := b.Fetcher.GetStock(ticker)
 			if err != nil {
 				log.Println(fmt.Errorf("unable to get short %v: %w", ticker, err))
