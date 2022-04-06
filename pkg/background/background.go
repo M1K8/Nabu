@@ -82,11 +82,6 @@ type Repo interface {
 	GetCrypto(string) (*harpe.Crypto, error)
 }
 
-func (b *Background) Remove() int {
-	b.References -= 1
-	return b.References
-}
-
 func (b *Background) addChan(uid string) chan float32 {
 	b.References += 1
 	newChan := make(chan float32)
