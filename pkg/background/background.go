@@ -95,6 +95,7 @@ func (b *Background) addChan(uid string) chan float32 {
 }
 
 func (b *Background) removeChan(uid string) int {
+	close(b.priceChans[uid])
 	delete(b.priceChans, uid)
 	b.References -= 1
 	return b.References
