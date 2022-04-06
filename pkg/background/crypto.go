@@ -44,7 +44,6 @@ func (b *Background) CheckCryptoPriceInBG(ticker, uid string, manageChan chan Ma
 			case Remove:
 				remaining := b.removeChan(uid)
 				if remaining <= 0 {
-					manageChan <- Exit
 					return
 				}
 			}

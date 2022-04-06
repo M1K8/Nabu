@@ -48,7 +48,6 @@ func (b *Background) CheckShortPriceInBG(ticker, uid string, manageChan chan Man
 			case Remove:
 				remaining := b.removeChan(uid)
 				if remaining <= 0 {
-					manageChan <- Exit
 					return
 				}
 			}
