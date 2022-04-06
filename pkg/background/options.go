@@ -24,7 +24,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, uid string, manageChan <-chan ManageMsg, priceChan chan<- chan float32) {
+func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
 	tick := time.NewTicker(333 * time.Millisecond)
 	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
 	log.Println("Starting BG Scan for Option " + prettyStr)
@@ -49,6 +49,7 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 			case Remove:
 				remaining := b.removeChan(uid)
 				if remaining <= 0 {
+					manageChan <- Exit
 					return
 				}
 			}

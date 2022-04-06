@@ -24,7 +24,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan <-chan ManageMsg, priceChan chan<- chan float32) {
+func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
 	tick := time.NewTicker(45000 * time.Millisecond)
 	log.Println("Starting BG Scan for Stock " + ticker)
 
@@ -48,6 +48,7 @@ func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan <-chan M
 			case Remove:
 				remaining := b.removeChan(uid)
 				if remaining <= 0 {
+					manageChan <- Exit
 					return
 				}
 			}
