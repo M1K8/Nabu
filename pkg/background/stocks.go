@@ -32,6 +32,10 @@ func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan chan Man
 		select {
 		case <-tick.C:
 			if !db.IsTradingHours() {
+				// magic secret special message
+				for _, v := range b.priceChans {
+					v <- -8008.135
+				}
 				time.Sleep(utils.GetTimeToOpen())
 			}
 			newPrice, err := b.Fetcher.GetStock(ticker)

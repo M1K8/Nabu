@@ -32,6 +32,9 @@ func (b *Background) CheckShortPriceInBG(ticker, uid string, manageChan chan Man
 		select {
 		case <-tick.C:
 			if !db.IsTradingHours() {
+				for _, v := range b.priceChans {
+					v <- -8008.135
+				}
 				time.Sleep(utils.GetTimeToOpen())
 			}
 			newPrice, err := b.Fetcher.GetStock(ticker)

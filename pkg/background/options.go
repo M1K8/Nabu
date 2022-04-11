@@ -33,6 +33,9 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 		select {
 		case <-tick.C:
 			if !db.IsTradingHours() {
+				for _, v := range b.priceChans {
+					v <- -8008.135
+				}
 				time.Sleep(utils.GetTimeToOpen())
 			}
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
