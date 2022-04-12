@@ -32,18 +32,6 @@ type ManageMsg int
 type ResponseType int
 
 const (
-	Price ResponseType = iota
-	Expired
-	PT1
-	PT2
-	SL
-	TSL
-	POI
-	New_High
-	New_Avg
-	EoD
-	Error
-
 	Add ManageMsg = iota
 	Remove
 	Exit
@@ -66,7 +54,7 @@ type Repo interface {
 	RefreshFromDB() ([]*harpe.Stock, []*harpe.Short, []*harpe.Crypto, []*harpe.Option, error)
 
 	GetOption(string) (*harpe.Option, error)
-	CreateOption(string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
+	CreateOption(string, string, string, int, string, string, string, string, string, float32, float32, float32, float32, float32, float32, float32) (chan bool, string, bool, error)
 	RemoveOption(string, string, string, string, string, float32) error
 
 	CreateShort(string, string, string, int, float32, float32, float32, float32, float32, int64, float32) (chan bool, bool, error)
