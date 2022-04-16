@@ -41,8 +41,9 @@ func NewBG(guildID string, repo Repo) *Background {
 	fetch := fetcher.NewFetcher()
 
 	return &Background{
-		Fetcher: fetch,
-		Repo:    repo,
+		Fetcher:    fetch,
+		Repo:       repo,
+		priceChans: make(map[string]chan float32),
 	}
 }
 
