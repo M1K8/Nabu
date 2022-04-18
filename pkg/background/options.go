@@ -52,6 +52,7 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 			case Remove:
 				remaining := b.removeChan(uid)
 				if remaining <= 0 {
+					log.Println("Background for " + prettyStr + " done!")
 					return
 				}
 			}
