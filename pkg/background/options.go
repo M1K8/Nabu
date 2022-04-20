@@ -25,7 +25,7 @@ import (
 )
 
 func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
-	tick := time.NewTicker(333 * time.Millisecond)
+	tick := time.NewTicker(400 * time.Millisecond)
 	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
 	log.Println("Starting BG Scan for Option " + prettyStr)
 
