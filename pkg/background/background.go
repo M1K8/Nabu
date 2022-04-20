@@ -27,6 +27,11 @@ type Background struct {
 	priceChans map[string]chan float32
 }
 
+type MngMsg struct {
+	Cmd    ManageMsg
+	ChanID string
+}
+
 type ManageMsg int
 
 type ResponseType int

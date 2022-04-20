@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func (b *Background) CheckCryptoPriceInBG(ticker, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
+func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan chan MngMsg, priceChan chan<- chan float32) {
 	tick := time.NewTicker(10000 * time.Millisecond)
 	log.Println("Starting BG Scan for Crypto " + ticker)
 
@@ -37,12 +37,12 @@ func (b *Background) CheckCryptoPriceInBG(ticker, uid string, manageChan chan Ma
 			}
 			b.pushPrice(newPrice)
 		case m := <-manageChan:
-			switch m {
+			switch m.Cmd {
 			case Add:
-				newChan := b.addChan(uid)
+				newChan := b.addChan(m.ChanID)
 				priceChan <- newChan
 			case Remove:
-				remaining := b.removeChan(uid)
+				remaining := b.removeChan(m.ChanID)
 				if remaining <= 0 {
 					log.Println("Background for " + ticker + " done!")
 					return

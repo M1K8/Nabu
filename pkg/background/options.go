@@ -24,7 +24,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
+func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, manageChan chan MngMsg, priceChan chan<- chan float32) {
 	tick := time.NewTicker(400 * time.Millisecond)
 	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
 	log.Println("Starting BG Scan for Option " + prettyStr)
@@ -33,9 +33,10 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 		select {
 		case <-tick.C:
 			if !db.IsTradingHours() {
-				for _, v := range b.priceChans {
+				/*for _, v := range b.priceChans {
 					v <- -8008.135
-				}
+				}*/
+				log.Println("Sleeping " + prettyStr)
 				time.Sleep(utils.GetTimeToOpen())
 			}
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
@@ -45,12 +46,12 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 			}
 			b.pushPrice(newPrice)
 		case m := <-manageChan:
-			switch m {
+			switch m.Cmd {
 			case Add:
-				newChan := b.addChan(uid)
+				newChan := b.addChan(m.ChanID)
 				priceChan <- newChan
 			case Remove:
-				remaining := b.removeChan(uid)
+				remaining := b.removeChan(m.ChanID)
 				if remaining <= 0 {
 					log.Println("Background for " + prettyStr + " done!")
 					return

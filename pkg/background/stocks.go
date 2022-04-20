@@ -24,7 +24,7 @@ import (
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
-func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan chan ManageMsg, priceChan chan<- chan float32) {
+func (b *Background) CheckStockPriceInBG(ticker string, manageChan chan MngMsg, priceChan chan<- chan float32) {
 	tick := time.NewTicker(45000 * time.Millisecond)
 	log.Println("Starting BG Scan for Stock " + ticker)
 
@@ -33,9 +33,10 @@ func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan chan Man
 		case <-tick.C:
 			if !db.IsTradingHours() {
 				// magic secret special message
-				for _, v := range b.priceChans {
+				log.Println("Sleeping " + ticker)
+				/*for _, v := range b.priceChans {
 					v <- -8008.135
-				}
+				}*/
 				time.Sleep(utils.GetTimeToOpen())
 			}
 			newPrice, err := b.Fetcher.GetStock(ticker)
@@ -45,12 +46,12 @@ func (b *Background) CheckStockPriceInBG(ticker, uid string, manageChan chan Man
 			}
 			b.pushPrice(newPrice)
 		case m := <-manageChan:
-			switch m {
+			switch m.Cmd {
 			case Add:
-				newChan := b.addChan(uid)
+				newChan := b.addChan(m.ChanID)
 				priceChan <- newChan
 			case Remove:
-				remaining := b.removeChan(uid)
+				remaining := b.removeChan(m.ChanID)
 				if remaining <= 0 {
 					log.Println("Background for " + ticker + " done!")
 					return
