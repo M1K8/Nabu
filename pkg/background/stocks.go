@@ -19,9 +19,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/m1k8/harpe/pkg/db"
-	"github.com/m1k8/harpe/pkg/utils"
 )
 
 func (b *Background) CheckStockPriceInBG(ticker string, manageChan chan MngMsg, priceChan chan<- chan float32) {
@@ -31,14 +28,10 @@ func (b *Background) CheckStockPriceInBG(ticker string, manageChan chan MngMsg, 
 	for {
 		select {
 		case <-tick.C:
-			if !db.IsTradingHours() {
-				// magic secret special message
-				log.Println("Sleeping " + ticker)
-				/*for _, v := range b.priceChans {
-					v <- -8008.135
-				}*/
-				time.Sleep(utils.GetTimeToOpen())
-			}
+			//if !db.IsTradingHours() {
+			//	log.Println("Sleeping " + ticker)
+			//	time.Sleep(utils.GetTimeToOpen())
+			//}
 			newPrice, err := b.Fetcher.GetStock(ticker)
 			if err != nil {
 				log.Println(fmt.Errorf("unable to get Stock %v: %w", ticker, err))

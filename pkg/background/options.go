@@ -20,7 +20,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
@@ -32,13 +31,10 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 	for {
 		select {
 		case <-tick.C:
-			if !db.IsTradingHours() {
-				/*for _, v := range b.priceChans {
-					v <- -8008.135
-				}*/
-				log.Println("Sleeping " + prettyStr)
-				time.Sleep(utils.GetTimeToOpen())
-			}
+			//if !db.IsTradingHours() {
+			//	log.Println("Sleeping " + prettyStr)
+			//	time.Sleep(utils.GetTimeToOpen())
+			//}
 			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
 			if err != nil {
 				log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
