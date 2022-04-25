@@ -27,17 +27,6 @@ func (b *Background) CheckShortPriceInBG(ticker string, manageChan chan MngMsg, 
 
 	for {
 		select {
-		case <-tick.C:
-			//if !db.IsTradingHours() {
-			//	log.Println("Sleeping " + ticker)
-			//	time.Sleep(utils.GetTimeToOpen())
-			//}
-			newPrice, err := b.Fetcher.GetStock(ticker)
-			if err != nil {
-				log.Println(fmt.Errorf("unable to get short %v: %w", ticker, err))
-				continue
-			}
-			b.pushPrice(newPrice)
 		case m := <-manageChan:
 			switch m.Cmd {
 			case Add:
@@ -48,6 +37,28 @@ func (b *Background) CheckShortPriceInBG(ticker string, manageChan chan MngMsg, 
 				if remaining <= 0 {
 					log.Println("Background for " + ticker + " done!")
 					return
+				}
+			}
+		default:
+			select {
+			case <-tick.C:
+				newPrice, err := b.Fetcher.GetStock(ticker)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Stock %v: %w", ticker, err))
+					continue
+				}
+				b.pushPrice(newPrice)
+			case m := <-manageChan:
+				switch m.Cmd {
+				case Add:
+					newChan := b.addChan(m.ChanID)
+					priceChan <- newChan
+				case Remove:
+					remaining := b.removeChan(m.ChanID)
+					if remaining <= 0 {
+						log.Println("Background for " + ticker + " done!")
+						return
+					}
 				}
 			}
 		}

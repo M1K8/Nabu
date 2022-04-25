@@ -30,17 +30,6 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 
 	for {
 		select {
-		case <-tick.C:
-			//if !db.IsTradingHours() {
-			//	log.Println("Sleeping " + prettyStr)
-			//	time.Sleep(utils.GetTimeToOpen())
-			//}
-			newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
-			if err != nil {
-				log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
-				continue
-			}
-			b.pushPrice(newPrice)
 		case m := <-manageChan:
 			switch m.Cmd {
 			case Add:
@@ -51,6 +40,28 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 				if remaining <= 0 {
 					log.Println("Background for " + prettyStr + " done!")
 					return
+				}
+			}
+		default:
+			select {
+			case <-tick.C:
+				newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
+					continue
+				}
+				b.pushPrice(newPrice)
+			case m := <-manageChan:
+				switch m.Cmd {
+				case Add:
+					newChan := b.addChan(m.ChanID)
+					priceChan <- newChan
+				case Remove:
+					remaining := b.removeChan(m.ChanID)
+					if remaining <= 0 {
+						log.Println("Background for " + prettyStr + " done!")
+						return
+					}
 				}
 			}
 		}

@@ -29,13 +29,6 @@ func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan chan MngMsg,
 
 	for {
 		select {
-		case <-tick.C:
-			newPrice, err := b.Fetcher.GetCrypto(ticker, false)
-			if err != nil {
-				log.Println(fmt.Errorf("unable to get crypto %v: %w", ticker, err))
-				continue
-			}
-			b.pushPrice(newPrice)
 		case m := <-manageChan:
 			switch m.Cmd {
 			case Add:
@@ -46,6 +39,28 @@ func (b *Background) CheckCryptoPriceInBG(ticker string, manageChan chan MngMsg,
 				if remaining <= 0 {
 					log.Println("Background for " + ticker + " done!")
 					return
+				}
+			}
+		default:
+			select {
+			case <-tick.C:
+				newPrice, err := b.Fetcher.GetCrypto(ticker, false)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Crypto %v: %w", ticker, err))
+					continue
+				}
+				b.pushPrice(newPrice)
+			case m := <-manageChan:
+				switch m.Cmd {
+				case Add:
+					newChan := b.addChan(m.ChanID)
+					priceChan <- newChan
+				case Remove:
+					remaining := b.removeChan(m.ChanID)
+					if remaining <= 0 {
+						log.Println("Background for " + ticker + " done!")
+						return
+					}
 				}
 			}
 		}
