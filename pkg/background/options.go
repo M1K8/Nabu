@@ -25,46 +25,55 @@ import (
 )
 
 func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year string, price float32, manageChan chan MngMsg, priceChan chan<- chan float32) {
-	tick := time.NewTicker(400 * time.Millisecond)
+	tick := time.NewTicker(666 * time.Millisecond)
 	prettyStr := utils.NiceStr(ticker, contractType, day, month, year, price)
 	log.Println("Starting BG Scan for Option " + prettyStr)
 
+	////// Split into two - one for select for mgmt, and another for ticker + prices. This goroutine can take in a channel from mgmt thatll return when it gets a msg
+	// or, this dumb hack will work
+
 	for {
 		select {
-		case m := <-manageChan:
-			switch m.Cmd {
-			case Add:
-				newChan := b.addChan(m.ChanID)
-				priceChan <- newChan
-			case Remove:
-				remaining := b.removeChan(m.ChanID)
-				if remaining <= 0 {
-					log.Println("Background for " + prettyStr + " done!")
-					return
+		case <-tick.C:
+			if db.IsTradingHours() {
+				newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
+				if err != nil {
+					log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
+					continue
 				}
+				b.pushPrice(newPrice)
 			}
-		default:
+
+			// potential fix - if this ticker is hogging all the time, then do a check in here
 			select {
-			case <-tick.C:
-				if db.IsTradingHours() {
-					newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
-					if err != nil {
-						log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
-						continue
-					}
-					b.pushPrice(newPrice)
-				} // else tick.Stop?
 			case m := <-manageChan:
 				switch m.Cmd {
 				case Add:
 					newChan := b.addChan(m.ChanID)
 					priceChan <- newChan
+					continue
 				case Remove:
 					remaining := b.removeChan(m.ChanID)
 					if remaining <= 0 {
 						log.Println("Background for " + prettyStr + " done!")
 						return
 					}
+				}
+			default:
+				continue
+			}
+
+		case m := <-manageChan:
+			switch m.Cmd {
+			case Add:
+				newChan := b.addChan(m.ChanID)
+				priceChan <- newChan
+				continue
+			case Remove:
+				remaining := b.removeChan(m.ChanID)
+				if remaining <= 0 {
+					log.Println("Background for " + prettyStr + " done!")
+					return
 				}
 			}
 		}
