@@ -20,6 +20,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/m1k8/harpe/pkg/db"
 	"github.com/m1k8/harpe/pkg/utils"
 )
 
@@ -45,12 +46,14 @@ func (b *Background) CheckOptionPriceInBG(ticker, contractType, day, month, year
 		default:
 			select {
 			case <-tick.C:
-				newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
-				if err != nil {
-					log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
-					continue
-				}
-				b.pushPrice(newPrice)
+				if db.IsTradingHours() {
+					newPrice, _, err := b.Fetcher.GetOption(ticker, contractType, day, month, year, price, 0)
+					if err != nil {
+						log.Println(fmt.Errorf("unable to get Option %v: %w", prettyStr, err))
+						continue
+					}
+					b.pushPrice(newPrice)
+				} // else tick.Stop?
 			case m := <-manageChan:
 				switch m.Cmd {
 				case Add:
